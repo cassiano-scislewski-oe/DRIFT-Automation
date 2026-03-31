@@ -11,7 +11,7 @@ test('Admin Complete Flow: Upload, Year Edit and Rename', async ({ page }) => {
     const login = poManager.getLogin();
     const adminPage = poManager.getAdminPage();
     
-    const originalName = 'collection 18-march-V3';
+    const originalName = process.env.COLLECTION_NAME;
     const updatedName = 'collection 18-march-V3(updated)';
 
     await test.step('1. LOGIN AND NAVIGATION', async () => {

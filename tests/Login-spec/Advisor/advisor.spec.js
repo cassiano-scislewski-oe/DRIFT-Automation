@@ -10,7 +10,7 @@ test('RAG Flow: Admin Upload, Return Home and Advisor Question', async ({ page }
     const login = poManager.getLogin();
     const adminPage = poManager.getAdminPage();
     const advisorPage = poManager.getAdvisorPage();
-    const collectionName = 'collection 18-march-V3';
+    const collectionName = process.env.COLLECTION_NAME;
 
     await test.step('1. LOGIN AND AUTHENTICATION', async () => {
         await login.open();
