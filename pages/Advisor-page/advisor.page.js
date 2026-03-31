@@ -32,13 +32,13 @@ class AdvisorPage {
      * Navegação: Retorna para a Home
      */
     async clickHome() {
-        console.log('Retornando para a Home...');
+        console.log('Returning to Home...');
         await this.homeButton.waitFor({ state: 'visible', timeout: 30000 });
         await this.homeButton.click();
         try {
             await this.page.waitForURL(/.*home/, { timeout: 30000 });
         } catch {
-            console.log('Primeiro clique não redirecionou, tentando novamente...');
+            console.log('First click did not redirect, trying again...');
             await this.homeButton.click();
             await this.page.waitForURL(/.*home/, { timeout: 30000 });
         }
@@ -48,7 +48,7 @@ class AdvisorPage {
      * Navegação: Entra na tela Advisor
      */
     async navigateToAdvisor() {
-        console.log('Navegando para o Advisor...');
+        console.log('Navigating to Advisor...');
         await this.advisorCard.waitFor({ state: 'visible', timeout: 15000 });
         await this.advisorCard.click();
         await this.page.waitForURL(/.*advisor/);
@@ -57,7 +57,7 @@ class AdvisorPage {
     // --- ADICIONE ESTES MÉTODOS ABAIXO ---
 
     async validateSingleClaudeModel() {
-        console.log('Validando e selecionando o modelo Claude 4.5...');
+        console.log('Validating and selecting Claude 4.5 model...');
         await this.modelDropdown.waitFor({ state: 'visible' });
         await this.modelDropdown.click();
         await this.menuOptions.first().waitFor({ state: 'visible' });
@@ -74,11 +74,11 @@ class AdvisorPage {
         await this.collectionDropdown.waitFor({ state: 'visible' });
         const currentText = await this.collectionDropdown.innerText();
         if (currentText.includes(collectionName)) {
-            console.log('Coleção correta já está selecionada.');
+            console.log('Correct collection already selected.');
             return;
         }
         await this.collectionDropdown.click();
-        const opcao = this.page.locator('mat-option, .mdc-list-item').filter({ hasText: nameCollection }).first();
+        const option = this.page.locator('mat-option, .mdc-list-item').filter({ hasText: collectionName }).first();
         await option.waitFor({ state: 'visible', timeout: 10000 });
         await option.click();
         await this.page.locator('.mat-mdc-autocomplete-panel, .mat-mdc-select-panel, .cdk-overlay-pane').last().waitFor({ state: 'hidden' });
@@ -94,12 +94,12 @@ class AdvisorPage {
     }
 
     async validateResponsePresent(customTimeout = 60000) {
-        console.log('Aguardando resposta do Advisor (LLM)...');
+        console.log('Waiting for Advisor response (LLM)...');
         await expect(this.responseArea.first()).toBeVisible({ timeout: customTimeout });
     }
 
     async validateContentAndReferences(expectedText, expectedSource) {
-        console.log(`Validando conteúdo e fontes...`);
+        console.log(`Validating content and sources...`);
         await expect(this.assistantResponse).toContainText(expectedText, { timeout: 30000 });
         await this.sourcePane.waitFor({ state: 'visible', timeout: 15000 });
         const sourceFound = this.sourcePane.locator('p', { hasText: expectedSource }).first();
