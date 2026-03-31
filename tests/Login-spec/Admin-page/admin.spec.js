@@ -4,101 +4,101 @@ const { handleMFA } = require('../../../helpers/mfaHelper');
 const path = require('path');
 const fs = require('fs');
 
-test.describe('Fluxo Admin', () => {
+test.describe('Admin Flow', () => {
 
-    test('Fluxo Completo Admin: Upload, Edição de Ano e Renomeação', async ({ page }) => {
+    test('Admin Complete Flow: Upload, Year Edit and Rename', async ({ page }) => {
         test.setTimeout(420000);
 
         const poManager = new POManager(page);
         const login = poManager.getLogin();
         const adminPage = poManager.getAdminPage();
         
-        const nomeOriginal = 'collection 18-march-V3';
-        const nomeUpdated = 'collection 18-march-V3(updated)';
+        const originalName = 'collection 18-march-V3';
+        const updatedName = 'collection 18-march-V3(updated)';
 
-        await test.step('1. LOGIN E NAVEGAÇÃO', async () => {
-            await login.abrir();
-            await login.realizarLogin(process.env.USER_EMAIL, process.env.USER_PASS);
+        await test.step('1. LOGIN AND NAVIGATION', async () => {
+            await login.open();
+            await login.performLogin(process.env.USER_EMAIL, process.env.USER_PASS);
             await handleMFA(page, process.env.MFA_SECRET);
-            await adminPage.navegarParaAdmin();
+            await adminPage.navigateToAdmin();
             await expect(page).toHaveURL(/.*admin/);
         });
 
-        await test.step('2. SELEÇÃO E UPLOAD DO DOCUMENTO', async () => {
-            await adminPage.selecionarCollection(nomeOriginal);
-            await adminPage.limparDocumentosSeExistirem();
-            const pastaFiles = path.join(process.cwd(), 'fixtures', 'files');
-            const arquivos = fs.readdirSync(pastaFiles);
-            const arquivoReal = arquivos.find(f => f.includes('Electric'));
+        await test.step('2. DOCUMENT SELECTION AND UPLOAD', async () => {
+            await adminPage.selectCollection(originalName);
+            await adminPage.clearDocumentsIfExist();
+            const filesFolder = path.join(process.cwd(), 'fixtures', 'files');
+            const files = fs.readdirSync(filesFolder);
+            const actualFile = files.find(f => f.includes('Electric'));
             
-            await adminPage.uploadArquivos(path.join(pastaFiles, arquivoReal));
+            await adminPage.uploadFiles(path.join(filesFolder, actualFile));
         });
 
-        await test.step('3. VALIDAÇÃO UPLOAD E ESPERA DE PROCESSAMENTO', async () => {
+        await test.step('3. UPLOAD VALIDATION AND PROCESSING WAIT', async () => {
             await expect(page.getByText('Upload Complete')).toBeVisible({ timeout: 60000 });
-            console.log('Aguardando 90 segundos para o processamento...');
+            console.log('Waiting 90 seconds for processing...');
             await page.waitForTimeout(90000);
         });
 
-        await test.step('4. REFRESH E RE-SELEÇÃO DA COLLECTION', async () => {
+        await test.step('4. REFRESH AND COLLECTION RE-SELECTION', async () => {
             await page.reload();
-            await adminPage.selecionarCollection(nomeOriginal);
+            await adminPage.selectCollection(originalName);
         });
 
-        await test.step('5. VALIDAÇÃO DO TÍTULO NA TABELA', async () => {
-            const celulaTitulo = page.locator('.ag-cell[col-id="title"]');
-            await expect(celulaTitulo.filter({ hasText: 'Review of California Electric' }))
+        await test.step('5. TABLE TITLE VALIDATION', async () => {
+            const titleCell = page.locator('.ag-cell[col-id="title"]');
+            await expect(titleCell.filter({ hasText: 'Review of California Electric' }))
                 .toBeVisible({ timeout: 60000 });
         });
 
-        await test.step('6. EDIÇÃO DO DOCUMENTO (Alterar Ano)', async () => {
-            console.log('Abrindo edição do documento na tabela...');
-            await adminPage.abrirEdicaoDocumento();
+        await test.step('6. DOCUMENT EDIT (Change Year)', async () => {
+            console.log('Opening document edit in the table...');
+            await adminPage.openDocumentEdit();
 
-            console.log('Validando Processing Stage e alterando ano para 2026...');
-            await adminPage.validarProcessingStage('complete');
-            await adminPage.alterarAnoDocumento('2026');
+            console.log('Validating Processing Stage and changing year to 2026...');
+            await adminPage.validateProcessingStage('complete');
+            await adminPage.changeDocumentYear('2026');
 
-            console.log('Salvando alterações do documento...');
+            console.log('Saving document changes...');
             await adminPage.saveDocumentButton.click();
 
             await expect(adminPage.saveDocumentButton).toBeHidden({ timeout: 15000 });
             
-            console.log('Validando se o ano 2026 reflete na tabela...');
+            console.log('Validating if year 2026 reflects in the table...');
 
-            await adminPage.validarAnoNaTabela('2026');
+            await adminPage.validateYearInTable('2026');
         });
 
-        await test.step('7. RENOMEAR COLLECTION (Ida e Volta)', async () => {
-            console.log(`Alterando nome da collection para: ${nomeUpdated}`);
+        await test.step('7. RENAME COLLECTION (Round Trip)', async () => {
+            console.log(`Renaming collection to: ${updatedName}`);
             await page.waitForTimeout(2000); 
-            await adminPage.renomearCollection(nomeUpdated);
-            await expect(adminPage.collectionInput).toHaveValue(nomeUpdated);
+            await adminPage.renameCollection(updatedName);
+            await expect(adminPage.collectionInput).toHaveValue(updatedName);
 
-            console.log(`Restaurando nome original: ${nomeOriginal}`);
-            await adminPage.renomearCollection(nomeOriginal);
-            await expect(adminPage.collectionInput).toHaveValue(nomeOriginal);
+            console.log(`Restoring original name: ${originalName}`);
+            await adminPage.renameCollection(originalName);
+            await expect(adminPage.collectionInput).toHaveValue(originalName);
         });
 
-        await test.step('8. FLUXO DE FILTRAGEM INDEPENDENTE', async () => {
-            console.log('Iniciando fluxo de filtragem independente para o ano 2026...');
-            await adminPage.filtrarPorAno('2026');
+        await test.step('8. INDEPENDENT FILTERING FLOW', async () => {
+            console.log('Starting independent filtering flow for year 2026...');
+            await adminPage.filterByYear('2026');
             
-            const celulaAno = page.locator('.ag-cell[col-id="year"]').first();
-            await expect(celulaAno).toHaveText('2026');
+            const yearCell = page.locator('.ag-cell[col-id="year"]').first();
+            await expect(yearCell).toHaveText('2026');
         });
 
-        await test.step('9. LIMPEZA: REMOÇÃO DO DOCUMENTO', async () => {
-            console.log('Iniciando limpeza: Removendo o documento utilizado no teste...');
+        await test.step('9. CLEANUP: DOCUMENT REMOVAL', async () => {
+            console.log('Starting cleanup: Removing the document used in the test...');
             await page.reload();
-            await adminPage.selecionarCollection(nomeOriginal);
+            await adminPage.selectCollection(originalName);
 
-            await adminPage.removerPrimeiroDocumento();
+            await adminPage.clearDocumentsIfExist();
 
             await expect(page.getByText('Review of California Electric')).not.toBeVisible({ timeout: 10000 });
         });
 
-        console.log('Fluxo completo finalizado com sucesso!');
+        console.log('Complete flow finished successfully!');
     });
 
 });

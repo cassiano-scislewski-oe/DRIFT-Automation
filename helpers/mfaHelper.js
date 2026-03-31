@@ -23,15 +23,15 @@ async function handleMFA(page, fixedSecret) {
     // Espera o campo aparecer (até 15s)
     await otpInput.waitFor({ state: 'visible', timeout: 15000 });
     
-    let tentativas = 0;
-    const maxTentativas = 5;
+    let attempts = 0;
+    const maxAttempts = 5;
 
-    while (tentativas < maxTentativas) {
-        tentativas++;
+    while (attempts < maxAttempts) {
+        attempts++;
         
         // Gera o token de 6 dígitos
         const token = generateTOTP(fixedSecret);
-        console.log(`MFA tentativa ${tentativas}: Token gerado: ${token}`);
+        console.log(`MFA attempt ${attempts}: Generated token: ${token}`);
         
         // Preenche e confirma
         await otpInput.fill('');
@@ -52,7 +52,7 @@ async function handleMFA(page, fixedSecret) {
             // Verifica se é o erro de "token já usado"
             const alertCount = await errorAlert.count();
             if (alertCount > 0) {
-                console.warn(`Tentativa ${tentativas}: Token já foi usado. Aguardando 5s e tentando novamente...`);
+                console.warn(`Attempt ${attempts}: Token already used. Waiting 5s and retrying...`);
                 await page.waitForTimeout(5000);
                 
                 // Dismiss do alert se souber o seletor
@@ -61,21 +61,21 @@ async function handleMFA(page, fixedSecret) {
                     try {
                         await dismissBtn.click();
                     } catch (e2) {
-                        console.warn('Não conseguiu fazer dismiss do alert');
+                        console.warn('Could not dismiss the alert');
                     }
                 }
                 continue; // Próxima tentativa
             } else if (tentativas < maxTentativas) {
-                console.warn(`Tentativa ${tentativas} falhou. Aguardando 3s...`);
+                console.warn(`Attempt ${attempts} failed. Waiting 3s...`);
                 await page.waitForTimeout(3000);
                 continue;
             } else {
-                throw new Error(`MFA falhou após ${maxTentativas} tentativas. Verifique o secret ou a hora do servidor.`);
+                throw new Error(`MFA failed after ${maxAttempts} attempts. Check the secret or server time.`);
             }
         }
     }
     
-    throw new Error('MFA não completado após todas as tentativas');
+    throw new Error('MFA not completed after all attempts');
 }
 
 module.exports = { handleMFA };

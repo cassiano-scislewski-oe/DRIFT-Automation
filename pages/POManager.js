@@ -1,4 +1,4 @@
-const { Login } = require('./Login-page/Login.page.js');
+const { Login } = require('./Login-page/login.page.js');
 const { AdminPage } = require('./Admin-page/admin.page.js'); 
 const { AdvisorPage } = require('./Advisor-page/advisor.page.js'); 
 

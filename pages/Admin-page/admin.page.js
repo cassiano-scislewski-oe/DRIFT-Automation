@@ -31,7 +31,7 @@ class AdminPage {
         this.filterButton = page.locator('button[mattooltip="Open filter selection"]');
         this.yearFilterDropdown = page.locator('mat-select').filter({ hasText: 'Select year' });
         // Seletor dinâmico para a opção do ano dentro do dropdown aberto
-        this.yearOption = (ano) => page.locator('mat-option').filter({ hasText: ano.toString() });
+        this.yearOption = (year) => page.locator('mat-option').filter({ hasText: year.toString() });
         this.applyFiltersButton = page.getByRole('button', { name: 'Apply Filters' });
 
         //Remover arquivo
@@ -41,28 +41,28 @@ class AdminPage {
 
     }
 
-    async navegarParaAdmin() {
+    async navigateToAdmin() {
         await this.adminCard.click();
     }
 
-    getPageTitleSeletor() {
+    getPageTitleSelector() {
         return this.pageTitle;
     }
 
-    async selecionarCollection(nome) {
+    async selectCollection(name) {
         await this.collectionInput.click();
-        await this.collectionOption(nome).waitFor({ state: 'visible' });
-        await this.collectionOption(nome).click();
+        await this.collectionOption(name).waitFor({ state: 'visible' });
+        await this.collectionOption(name).click();
     }
 
-    async uploadArquivos(caminhos) {
-        await this.fileInput.setInputFiles(caminhos);
+    async uploadFiles(paths) {
+        await this.fileInput.setInputFiles(paths);
     }
 
     /**
      * Ação do 2º Lápis: Abre o modal do documento na tabela
      */
-    async abrirEdicaoDocumento() {
+    async openDocumentEdit() {
         console.log('Clicando no lápis da linha da tabela (ao lado do ano)...');
         await this.editRowButton.waitFor({ state: 'visible', timeout: 20000 });
         await this.editRowButton.click();
@@ -71,42 +71,42 @@ class AdminPage {
     /**
      * Validação interna do modal aberto pelo 2º lápis
      */
-    async validarProcessingStage(valorEsperado) {
-        console.log(`Validando se o campo Processing Stage contém: ${valorEsperado}`);
+    async validateProcessingStage(expectedValue) {
+        console.log(`Validating if Processing Stage field contains: ${expectedValue}`);
         await this.processingStageInput.waitFor({ state: 'visible', timeout: 15000 });
         
         const value = await this.processingStageInput.inputValue();
         console.log(`Valor real capturado: "${value}"`);
         
-        if (value.toLowerCase().trim() !== valorEsperado.toLowerCase().trim()) {
-            throw new Error(`Validação falhou! Esperado: "${valorEsperado}", Encontrado: "${value}"`);
+        if (value.toLowerCase().trim() !== expectedValue.toLowerCase().trim()) {
+            throw new Error(`Validation failed! Expected: "${expectedValue}", Found: "${value}"`);
         }
     }
 
     /**
      * Edição do ano (deve ser chamado com o modal do documento aberto)
      */
-    async alterarAnoDocumento(novoAno) {
-        console.log(`Alterando o campo Year para: ${novoAno}`);
+    async changeDocumentYear(newYear) {
+        console.log(`Changing the Year field to: ${newYear}`);
         await this.yearInput.waitFor({ state: 'visible' });
         
         // Limpa o valor antigo e preenche com o novo
         await this.yearInput.fill(''); 
-        await this.yearInput.fill(novoAno.toString());
+        await this.yearInput.fill(newYear.toString());
         
         // Confirmação interna do preenchimento
-        await expect(this.yearInput).toHaveValue(novoAno.toString());
+        await expect(this.yearInput).toHaveValue(newYear.toString());
     }
 
     /**
      * Ação do 1º Lápis: Altera o nome da Collection inteira
      */
-    async renomearCollection(novoNome) {
-        console.log(`Renomeando collection para: ${novoNome}`);
+    async renameCollection(newName) {
+        console.log(`Renaming collection to: ${newName}`);
         await this.editCollectionNameButton.waitFor({ state: 'visible' });
         await this.editCollectionNameButton.click();
         await this.nameInput.waitFor({ state: 'visible' });
-        await this.nameInput.fill(novoNome);
+        await this.nameInput.fill(newName);
         await this.saveChangesButton.click();
         await this.page.waitForTimeout(3000);
     }
@@ -114,19 +114,19 @@ class AdminPage {
     /**
      * Valida o ano diretamente na célula da tabela AG-Grid
      */
-    async validarAnoNaTabela(anoEsperado) {
-        console.log(`Validando se o ano ${anoEsperado} aparece na tabela...`);
+    async validateYearInTable(expectedYear) {
+        console.log(`Validating if year ${expectedYear} appears in the table...`);
         // Localiza a célula da coluna 'year'
         const celulaAno = this.page.locator('.ag-cell[col-id="year"]').first();
-        await expect(celulaAno).toHaveText(anoEsperado.toString(), { timeout: 10000 });
+        await expect(celulaAno).toHaveText(expectedYear.toString(), { timeout: 10000 });
         console.log('Sucesso: Ano validado na tabela.');
     }
 
     /**
      * Fluxo independente de filtros
      */
-    async filtrarPorAno(ano) {
-        console.log(`Abrindo filtros para selecionar o ano: ${ano}`);
+    async filterByYear(year) {
+        console.log(`Opening filters to select year: ${year}`);
         await this.filterButton.click();
         
         // 1. Localiza o corpo do modal que contém o scroll
@@ -146,10 +146,10 @@ class AdminPage {
         await dropdown.click();
         
         // 5. Seleciona a opção no overlay que abriu
-        console.log(`Buscando a opção ${ano} no menu...`);
-        const opcao = this.page.locator('mat-option').filter({ hasText: new RegExp(`^\\s*${ano}\\s*$`) });
-        await opcao.waitFor({ state: 'visible' });
-        await opcao.click();
+        console.log(`Searching for option ${year} in the menu...`);
+        const option = this.page.locator('mat-option').filter({ hasText: new RegExp(`^\\s*${year}\\s*$`) });
+        await option.waitFor({ state: 'visible' });
+        await option.click();
         
         // 6. Fecha o menu de opções e aplica
         await this.page.keyboard.press('Escape'); 
@@ -160,44 +160,27 @@ class AdminPage {
         console.log('Filtro aplicado com sucesso.');
     }
 
-        async removerPrimeiroDocumento() {
-            console.log('Selecionando o primeiro documento da lista...');
-            await this.firstRowCheckbox.waitFor({ state: 'visible' });
-            await this.firstRowCheckbox.check();
-            await this.page.waitForTimeout(1000);
+        async removeFirstDocument() {
+            const selectAllCheckbox = this.page.locator('.ag-header-cell[col-id="ag-Grid-SelectionColumn"] input').first();
+            await selectAllCheckbox.click();
 
             console.log('Clicando no botão Remove do menu flutuante...');
-            await this.removeFloatingButton.waitFor({ state: 'visible', timeout: 15000 });
-            
-            // Retry com up to 3 tentativas para click
-            for (let attempt = 1; attempt <= 3; attempt++) {
-                try {
-                    await this.page.waitForTimeout(1500);
-                    await this.removeFloatingButton.click();
-                    break;
-                } catch (e) {
-                    if (attempt < 3) {
-                        console.warn(`Tentativa ${attempt} de clique no Remove falhou, aguardando...`);
-                        await this.page.waitForTimeout(3000);
-                    } else {
-                        throw e;
-                    }
-                }
-            }
+            await this.removeFloatingButton.waitFor({ state: 'visible' });
+            await this.page.waitForTimeout(4000);
+            await this.removeFloatingButton.dispatchEvent('click');
 
-            console.log('Confirmando a exclusão permanente...');
-            await this.confirmDeleteButton.waitFor({ state: 'visible', timeout: 15000 });
+            console.log('Confirmando a exclusão de todos os documentos...');
+            await this.confirmDeleteButton.waitFor({ state: 'visible' });
             await this.confirmDeleteButton.click();
 
-            // Espera o modal de confirmação sumir
-            await expect(this.page.locator('app-confirmation-modal')).toHaveCount(0, { timeout: 15000 });
+            await expect(this.page.locator('app-confirmation-modal')).toHaveCount(0);
             console.log('Documento removido com sucesso.');
         }
 
         /**
      * Verifica se existem documentos na lista e os remove antes de iniciar o teste
      */
-    async limparDocumentosSeExistirem() {
+    async clearDocumentsIfExist() {
         console.log('Verificando se existem documentos antigos para limpar...');
         
         // Localizador para as linhas da tabela (ajustado para AG-Grid)

@@ -24,24 +24,30 @@ class AdvisorPage {
         this.historyModal = page.locator('[data-test-id="history-modal"]');
         this.historyItems = this.historyModal.locator('.discussion-card .summary p');
 
-        this.collectionOption = (nome) => page.locator('mat-option').filter({ hasText: nome });
+        this.collectionOption = (name) => page.locator('mat-option').filter({ hasText: name });
         this.menuOptions = page.locator('.mat-mdc-menu-content button .mat-mdc-menu-item-text');
     }
 
     /**
      * Navegação: Retorna para a Home
      */
-    async clicarHome() {
+    async clickHome() {
         console.log('Retornando para a Home...');
         await this.homeButton.waitFor({ state: 'visible', timeout: 30000 });
         await this.homeButton.click();
-        await this.page.waitForURL(/.*home/, { timeout: 30000 });
+        try {
+            await this.page.waitForURL(/.*home/, { timeout: 30000 });
+        } catch {
+            console.log('Primeiro clique não redirecionou, tentando novamente...');
+            await this.homeButton.click();
+            await this.page.waitForURL(/.*home/, { timeout: 30000 });
+        }
     }
 
     /**
      * Navegação: Entra na tela Advisor
      */
-    async navegarParaAdvisor() {
+    async navigateToAdvisor() {
         console.log('Navegando para o Advisor...');
         await this.advisorCard.waitFor({ state: 'visible', timeout: 15000 });
         await this.advisorCard.click();
@@ -50,61 +56,61 @@ class AdvisorPage {
 
     // --- ADICIONE ESTES MÉTODOS ABAIXO ---
 
-    async validarModeloUnicoClaude() {
+    async validateSingleClaudeModel() {
         console.log('Validando e selecionando o modelo Claude 4.5...');
         await this.modelDropdown.waitFor({ state: 'visible' });
         await this.modelDropdown.click();
         await this.menuOptions.first().waitFor({ state: 'visible' });
-        const modelos = await this.menuOptions.allInnerTexts();
-        expect(modelos.length).toEqual(1);
-        expect(modelos[0].trim()).toBe('Claude Sonnet 4.5');
+        const models = await this.menuOptions.allInnerTexts();
+        expect(models.length).toEqual(1);
+        expect(models[0].trim()).toBe('Claude Sonnet 4.5');
         await this.menuOptions.first().click();
         await this.page.locator('.mat-mdc-menu-panel').waitFor({ state: 'hidden' });
         await expect(this.modelDropdown).toContainText('Claude Sonnet 4.5');
     }
 
-    async selecionarColecaoNoAdvisor(nomeCollection) {
-        console.log(`Verificando seleção da coleção: ${nomeCollection}`);
+    async selectCollectionInAdvisor(collectionName) {
+        console.log(`Checking collection selection: ${collectionName}`);
         await this.collectionDropdown.waitFor({ state: 'visible' });
-        const textoAtual = await this.collectionDropdown.innerText();
-        if (textoAtual.includes(nomeCollection)) {
+        const currentText = await this.collectionDropdown.innerText();
+        if (currentText.includes(collectionName)) {
             console.log('Coleção correta já está selecionada.');
             return;
         }
         await this.collectionDropdown.click();
-        const opcao = this.page.locator('mat-option, .mdc-list-item').filter({ hasText: nomeCollection }).first();
-        await opcao.waitFor({ state: 'visible', timeout: 10000 });
-        await opcao.click();
+        const opcao = this.page.locator('mat-option, .mdc-list-item').filter({ hasText: nameCollection }).first();
+        await option.waitFor({ state: 'visible', timeout: 10000 });
+        await option.click();
         await this.page.locator('.mat-mdc-autocomplete-panel, .mat-mdc-select-panel, .cdk-overlay-pane').last().waitFor({ state: 'hidden' });
-        await expect(this.collectionDropdown).toContainText(nomeCollection);
+        await expect(this.collectionDropdown).toContainText(collectionName);
     }
 
-    async fazerPergunta(pergunta) {
-        console.log(`Enviando pergunta ao Advisor: "${pergunta}"`);
+    async askQuestion(question) {
+        console.log(`Sending question to Advisor: "${question}"`);
         await this.chatInput.waitFor({ state: 'visible' });
-        await this.chatInput.fill(pergunta);
+        await this.chatInput.fill(question);
         await this.sendButton.waitFor({ state: 'visible' });
         await this.sendButton.click();
     }
 
-    async validarRespostaPresente(timeoutPersonalizado = 60000) {
+    async validateResponsePresent(customTimeout = 60000) {
         console.log('Aguardando resposta do Advisor (LLM)...');
-        await expect(this.responseArea.first()).toBeVisible({ timeout: timeoutPersonalizado });
+        await expect(this.responseArea.first()).toBeVisible({ timeout: customTimeout });
     }
 
-    async validarConteudoEReferencias(textoEsperado, fonteEsperada) {
+    async validateContentAndReferences(expectedText, expectedSource) {
         console.log(`Validando conteúdo e fontes...`);
-        await expect(this.assistantResponse).toContainText(textoEsperado, { timeout: 30000 });
+        await expect(this.assistantResponse).toContainText(expectedText, { timeout: 30000 });
         await this.sourcePane.waitFor({ state: 'visible', timeout: 15000 });
-        const fonteEncontrada = this.sourcePane.locator('p', { hasText: fonteEsperada }).first();
-        await expect(fonteEncontrada).toBeVisible();
+        const sourceFound = this.sourcePane.locator('p', { hasText: expectedSource }).first();
+        await expect(sourceFound).toBeVisible();
     }
 
-    async validarHistorico(termoEsperado) {
-        console.log(`Abrindo histórico para validar: ${termoEsperado}`);
+    async validateHistory(expectedTerm) {
+        console.log(`Opening history to validate: ${expectedTerm}`);
         await this.historyButton.click();
         await this.historyModal.waitFor({ state: 'visible' });
-        const item = this.historyItems.filter({ hasText: termoEsperado }).first();
+        const item = this.historyItems.filter({ hasText: expectedTerm }).first();
         await expect(item).toBeVisible({ timeout: 10000 });
         await this.page.keyboard.press('Escape');
     }
