@@ -65,6 +65,21 @@ test.describe('Authentication and Access', () => {
             }
         });
 
+        await test.step('Validate sidebar navigation items are displayed', async () => {
+            const sidebarItems = [
+                '/advisor',
+                '/reviewers',
+                '/collections',
+                '/prompt-log',
+                '/admin',
+            ];
+
+            for (const href of sidebarItems) {
+                const navItem = page.locator(`div.nav-item-container a.mat-mdc-list-item[href="${href}"]`);
+                await expect(navItem, `Sidebar item "${href}" should be visible`).toBeVisible({ timeout: 10000 });
+            }
+        });
+
         await test.step('Click on profile button and navigate to the profile page', async () => {
             await login.profileButton.waitFor({ state: 'visible', timeout: 30000 });
             await login.profileButton.click();
