@@ -100,7 +100,7 @@ class AdvisorPage {
 
     async validateContentAndReferences(expectedText, expectedSource) {
         console.log(`Validating content and sources...`);
-        await expect(this.assistantResponse).toContainText(expectedText, { timeout: 30000 });
+        await expect(this.responseArea.first()).toContainText(expectedText, { timeout: 30000 });
         await this.sourcePane.waitFor({ state: 'visible', timeout: 15000 });
         const sourceFound = this.sourcePane.locator('p', { hasText: expectedSource }).first();
         await expect(sourceFound).toBeVisible();

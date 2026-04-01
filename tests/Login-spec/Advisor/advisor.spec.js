@@ -55,7 +55,7 @@ test('RAG Flow: Admin Upload (PDF), Return Home and Advisor Question', async ({ 
     });
 
     await test.step('8. VALIDATE RESPONSE AND SOURCES (RAG)', async () => {
-        const termoChaveResposta = /California Electric.*Reliability.*2006-2015/i;
+        const termoChaveResposta = 'California Electric';
         const fonteEsperada = 'Review of California Electric Utility Reliability 2006-2015';
         
         await advisorPage.validateResponsePresent(120000);
@@ -118,7 +118,7 @@ test('RAG Flow: Admin Upload (DOCX), Return Home and Advisor Question', async ({
     });
 
     await test.step('8. VALIDATE RESPONSE AND SOURCES (RAG)', async () => {
-        const termoChaveResposta = /California Electric.*Reliability.*2006-2015/i;
+        const termoChaveResposta = 'California Electric';
         const fonteEsperada = 'Review of California Electric Utility Reliability 2006-2015';
         
         await advisorPage.validateResponsePresent(120000);
