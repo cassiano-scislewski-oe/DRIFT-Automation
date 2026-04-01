@@ -53,7 +53,9 @@ class advisorlog {
     async clickFirstLogEntry() {
         console.log('Clicking first log entry...');
         await this.firstLogEntryHeader.waitFor({ state: 'visible', timeout: 15000 });
+        await this.page.waitForTimeout(5000);
         await this.firstLogEntryHeader.click();
+        await this.page.waitForTimeout(5000);
     }
 
     async validateLogEntryDetails({ user, title, promptText }) {

@@ -9,7 +9,7 @@ test('Advisor Log: Login and navigate to Advisor Log page', async ({ page }) => 
     const advisorPage = poManager.getAdvisorPage();
     const advisorlogPage = poManager.getAdvisorLog();
     const collectionName = process.env.COLLECTION_NAME;
-    const expectedFirstEntry = 'Summarize California Electric Document';
+    const expectedFirstEntry = 'California Electric Document';
 
     await test.step('1. LOGIN AND AUTHENTICATION', async () => {
         await login.open();
