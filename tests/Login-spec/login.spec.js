@@ -49,6 +49,22 @@ test.describe('Authentication and Access', () => {
             await page.waitForURL(/.*home/, { timeout: 30000 });
         });
 
+        await test.step('Validate home menu cards are displayed', async () => {
+            const menuCards = [
+                { link: '/advisor',     title: 'Advisor' },
+                { link: '/reviewers',   title: 'Reviewers' },
+                { link: '/collections', title: 'Collections' },
+                { link: '/prompt-log',  title: 'Logs' },
+                { link: '/admin',       title: 'Admin' },
+            ];
+
+            for (const card of menuCards) {
+                const cardLocator = page.locator(`div.card-grid__item[ng-reflect-router-link="${card.link}"]`);
+                await expect(cardLocator, `Card "${card.title}" should be visible`).toBeVisible({ timeout: 15000 });
+                await expect(cardLocator.locator('span.card-grid__title')).toContainText(card.title);
+            }
+        });
+
         await test.step('Click on profile button and navigate to the profile page', async () => {
             await login.profileButton.waitFor({ state: 'visible', timeout: 30000 });
             await login.profileButton.click();
